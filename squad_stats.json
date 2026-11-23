@@ -1,0 +1,51 @@
+{
+  "squads": {
+    "1": {
+      "total_matches": 0,
+      "total_glory": 0,
+      "mode": "BR"
+    },
+    "2": {
+      "total_matches": 0,
+      "total_glory": 0,
+      "mode": "CS"
+    }
+  },
+  "accounts": {
+    "8490610228": {
+      "matches": 0,
+      "glory": 0,
+      "status": "STOPPED"
+    },
+    "8490610316": {
+      "matches": 0,
+      "glory": 0,
+      "status": "STOPPED"
+    },
+    "8490610374": {
+      "matches": 0,
+      "glory": 0,
+      "status": "STOPPED"
+    },
+    "8490611636": {
+      "matches": 0,
+      "glory": 0,
+      "status": "STOPPED"
+    },
+    "8490611639": {
+      "matches": 0,
+      "glory": 0,
+      "status": "STOPPED"
+    },
+    "8490611658": {
+      "matches": 0,
+      "glory": 0,
+      "status": "STOPPED"
+    },
+    "8490611649": {
+      "matches": 0,
+      "glory": 0,
+      "status": "STOPPED"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  guild-glory-bot:
+    build: .
+    container_name: guild_glory_bot
+    restart: always
+    ports:
+      - "25086:25086"
+    environment:
+      - PORT=25086
+      - PYTHONUNBUFFERED=1

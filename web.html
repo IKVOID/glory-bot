@@ -1,0 +1,2104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GUILD GLORY BOT • Web Control Center & Live Terminal</title>
+  <style>
+    :root {
+      --bg: #060b14;
+      --bg-card: rgba(13, 23, 42, 0.85);
+      --bg-card-hover: rgba(18, 32, 60, 0.95);
+      --border: rgba(56, 189, 248, 0.2);
+      --border-glow: rgba(56, 189, 248, 0.4);
+      --cyan: #38bdf8;
+      --cyan-glow: #00e5ff;
+      --green: #34d399;
+      --green-glow: #10b981;
+      --red: #f87171;
+      --yellow: #fbbf24;
+      --purple: #c084fc;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --term-bg: #050811;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: radial-gradient(ellipse at 15% 0%, #0d2847 0%, transparent 45%),
+                  radial-gradient(ellipse at 85% 20%, #151d3b 0%, transparent 40%),
+                  linear-gradient(180deg, #040810 0%, #070e1c 50%, #03060d 100%);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .wrap {
+      max-width: 1460px;
+      margin: 0 auto;
+      padding: 20px;
+      width: 100%;
+      flex: 1;
+    }
+    /* HEADER */
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #00e5ff, #3b82f6);
+      display: grid;
+      place-items: center;
+      font-size: 26px;
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+    }
+    .brand h1 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      background: linear-gradient(90deg, #ffffff, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .brand small {
+      display: block;
+      color: var(--cyan);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .header-badges {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border);
+    }
+    .badge-status {
+      border-color: rgba(52, 211, 153, 0.3);
+      color: var(--green);
+    }
+    .badge-status.stopped {
+      border-color: rgba(248, 113, 113, 0.3);
+      color: var(--red);
+    }
+    .badge-status.starting {
+      border-color: rgba(251, 191, 36, 0.3);
+      color: var(--yellow);
+    }
+    .pulse-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 1.8s infinite;
+    }
+    .badge-status.stopped .pulse-dot {
+      background: var(--red);
+      box-shadow: 0 0 8px var(--red);
+      animation: none;
+    }
+    .badge-status.starting .pulse-dot {
+      background: var(--yellow);
+      box-shadow: 0 0 8px var(--yellow);
+    }
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.7; }
+      50% { transform: scale(1.2); opacity: 1; filter: brightness(1.2); }
+      100% { transform: scale(0.95); opacity: 0.7; }
+    }
+
+    /* NAVIGATION TABS */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .tab-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .tab-btn:hover {
+      background: rgba(26, 41, 71, 0.8);
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(14, 116, 144, 0.8), rgba(2, 132, 199, 0.8));
+      color: #fff;
+      border-color: var(--cyan);
+      box-shadow: 0 0 15px rgba(2, 132, 199, 0.3);
+    }
+
+    /* TOP STATS CARDS */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(8px);
+    }
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    }
+    .stat-card small {
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .stat-card h3 {
+      font-size: 24px;
+      font-weight: 800;
+      margin-top: 8px;
+      color: #fff;
+    }
+    .stat-sub {
+      font-size: 11px;
+      color: var(--green);
+      margin-top: 4px;
+      font-weight: 600;
+    }
+
+    /* BOT CONTROLLER HERO */
+    .control-card {
+      background: linear-gradient(135deg, rgba(13, 27, 49, 0.95), rgba(8, 17, 33, 0.95));
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    }
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .control-title h2 {
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .control-title p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .safety-shield {
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: var(--green);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* MODE SELECTOR */
+    .modes-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .mode-box {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .mode-box:hover {
+      background: rgba(22, 38, 66, 0.7);
+      border-color: rgba(56, 189, 248, 0.3);
+      transform: translateY(-2px);
+    }
+    .mode-box.selected {
+      background: linear-gradient(135deg, rgba(14, 116, 144, 0.4), rgba(30, 58, 138, 0.4));
+      border-color: var(--cyan);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+    }
+    .mode-box h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .mode-box p {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+    .mode-badge {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 8px;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--cyan);
+    }
+
+    /* CONTROL BUTTONS */
+    .control-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 22px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+    .btn:active {
+      transform: scale(0.98);
+    }
+    .btn-start {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.4);
+    }
+    .btn-start:hover {
+      background: linear-gradient(135deg, #34d399, #10b981);
+      box-shadow: 0 0 25px rgba(16, 185, 129, 0.6);
+    }
+    .btn-stop {
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      color: #fff;
+      box-shadow: 0 0 18px rgba(239, 68, 68, 0.4);
+    }
+    .btn-stop:hover {
+      background: linear-gradient(135deg, #f87171, #dc2626);
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.6);
+    }
+    .btn-secondary {
+      background: rgba(30, 41, 59, 0.8);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover {
+      background: rgba(51, 65, 85, 0.9);
+      border-color: var(--cyan);
+    }
+
+    /* TERMINAL WINDOW */
+    .terminal-container {
+      background: var(--term-bg);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+    }
+    .terminal-bar {
+      background: #090e1a;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .term-dots {
+      display: flex;
+      gap: 6px;
+    }
+    .term-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
+    .term-title {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .term-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .term-btn {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+    }
+    .term-btn:hover {
+      color: #fff;
+      border-color: var(--cyan);
+      background: rgba(51, 65, 85, 0.8);
+    }
+    .term-btn.active {
+      color: var(--green);
+      border-color: var(--green);
+      background: rgba(16, 185, 129, 0.15);
+    }
+    .term-select {
+      background: #090e1a;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* TERMINAL SCREEN */
+    .terminal-screen {
+      height: 480px;
+      overflow-y: auto;
+      padding: 14px 16px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12.5px;
+      line-height: 1.6;
+      background: #050811;
+      position: relative;
+    }
+    .terminal-screen::-webkit-scrollbar {
+      width: 8px;
+    }
+    .terminal-screen::-webkit-scrollbar-track {
+      background: #050811;
+    }
+    .terminal-screen::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 4px;
+    }
+    .terminal-screen::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+
+    /* TERMINAL LOG LINE STYLING */
+    .t-line {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      padding: 2px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+      word-break: break-all;
+    }
+    .t-time {
+      color: #64748b;
+      font-size: 11px;
+      flex-shrink: 0;
+      user-select: none;
+    }
+    .t-text {
+      color: #cbd5e1;
+      flex: 1;
+    }
+    /* LEVEL COLORS */
+    .t-line.success .t-text { color: #34d399; font-weight: 500; }
+    .t-line.error .t-text { color: #f87171; font-weight: 600; }
+    .t-line.warning .t-text { color: #fbbf24; }
+    .t-line.packet .t-text { color: #38bdf8; }
+    .t-line.squad .t-text { color: #c084fc; font-weight: 500; }
+    .t-line.glory .t-text { color: #fb923c; font-weight: 600; }
+    .t-line.command .t-text { color: #a7f3d0; font-weight: 600; }
+
+    /* TERMINAL PROMPT INPUT */
+    .terminal-input-bar {
+      background: #090e1a;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .prompt-lbl {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+      color: var(--green);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .terminal-input {
+      flex: 1;
+      background: transparent;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 8px;
+      color: #f8fafc;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+      padding: 8px 12px;
+      outline: none;
+    }
+    .terminal-input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+    }
+    .chips-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .chip {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      padding: 4px 9px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: ui-monospace, monospace;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .chip:hover {
+      background: rgba(51, 65, 85, 0.8);
+      color: #fff;
+      border-color: var(--cyan);
+    }
+
+    /* PANELS (TABS) */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* TABLES */
+    .table-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .table-header {
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .table-header h3 { font-size: 16px; font-weight: 700; }
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+    th {
+      background: rgba(15, 23, 42, 0.5);
+      color: var(--cyan);
+      font-weight: 600;
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 12px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    td {
+      padding: 13px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: #cbd5e1;
+    }
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .tag-active { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .tag-squad1 { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+    .tag-squad2 { background: rgba(192, 132, 252, 0.2); color: #c084fc; }
+    .tag-ban { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+    /* SQUAD CARDS & MANAGER */
+    .squad-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .squad-summary-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      position: relative;
+    }
+    .squad-summary-box h4 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .squad-summary-box .val {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .squad-summary-box .sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* SQUADS GRID */
+    .squads-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+    .squad-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+    .squad-card.active-squad {
+      border-color: rgba(56, 189, 248, 0.45);
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.12);
+    }
+    .squad-card-header {
+      padding: 16px 20px;
+      background: rgba(15, 23, 42, 0.65);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .sq-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .sq-title-group h3 {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
+    .sq-controls-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .sq-mode-select {
+      background: #0b1220;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: var(--cyan);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      outline: none;
+      margin-bottom: 0;
+      width: auto;
+    }
+    .btn-sq-start {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-sq-start:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+    .btn-sq-stop {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: #fff;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-sq-stop:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
+    .btn-sq-restart {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--yellow);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-sq-restart:hover { background: rgba(245, 158, 11, 0.3); }
+
+    /* SQUAD LIVE MATCH BANNER */
+    .squad-live-bar {
+      padding: 12px 20px;
+      background: rgba(8, 14, 26, 0.85);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 12px;
+    }
+    .sq-stat-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .sq-stat-label {
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+    }
+    .sq-stat-val {
+      font-weight: 700;
+      color: var(--text);
+      font-family: monospace;
+    }
+    .sq-stat-val.active-match {
+      color: var(--green);
+      font-weight: 800;
+      animation: pulseText 2s infinite;
+    }
+    @keyframes pulseText {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.65; }
+    }
+
+    /* BOT ACCOUNTS IN SQUAD */
+    .squad-accounts-list {
+      padding: 12px 20px 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+    }
+    .bot-card-item {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: all 0.2s;
+    }
+    .bot-card-item:hover {
+      background: rgba(15, 23, 42, 0.85);
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+    .bot-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .bot-uid-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .bot-role-badge {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 8px;
+      text-transform: uppercase;
+    }
+    .bot-role-badge.leader {
+      background: rgba(245, 158, 11, 0.25);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+    .bot-role-badge.member {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    .bot-uid {
+      font-family: monospace;
+      font-weight: 700;
+      font-size: 13px;
+      color: #fff;
+    }
+    .bot-nick {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .bot-status-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .bot-status-pill.in-match {
+      background: rgba(16, 185, 129, 0.25);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+    .bot-status-pill.queueing {
+      background: rgba(245, 158, 11, 0.25);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+    .bot-status-pill.lobby {
+      background: rgba(56, 189, 248, 0.2);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    .bot-status-pill.stopped {
+      background: rgba(148, 163, 184, 0.15);
+      color: #94a3b8;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+    .bot-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .bot-glory-badge {
+      background: rgba(234, 179, 8, 0.15);
+      color: #facc15;
+      border: 1px solid rgba(234, 179, 8, 0.3);
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-weight: 700;
+    }
+
+    /* SQUAD QUICK RIBBON ON TAB 1 */
+    .squad-ribbon-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .sq-ribbon-tile {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s;
+    }
+    .sq-ribbon-tile.active-sq {
+      border-color: rgba(56, 189, 248, 0.4);
+      background: rgba(15, 23, 42, 0.7);
+    }
+    .copy-btn-mini {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 11px;
+      padding: 0 4px;
+      transition: color 0.2s;
+    }
+    .copy-btn-mini:hover { color: var(--cyan); }
+
+    /* FORMS & WIZARD */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .form-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+    }
+    .form-box h3 { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+    label { display: block; font-size: 12px; color: var(--text-muted); margin: 8px 0 4px; }
+    input, select, textarea {
+      width: 100%;
+      background: #090e1a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 10px 12px;
+      font-size: 13px;
+      outline: none;
+      margin-bottom: 12px;
+    }
+    input:focus, textarea:focus { border-color: var(--cyan); }
+    .result-box {
+      margin-top: 12px;
+      padding: 12px;
+      background: #050811;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      color: var(--cyan);
+      min-height: 40px;
+    }
+
+    /* FOOTER */
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-muted);
+      font-size: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      margin-top: 30px;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 960px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .modes-grid { grid-template-columns: repeat(2, 1fr); }
+      .form-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 580px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .modes-grid { grid-template-columns: 1fr; }
+      .top { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+  <!-- TOP HEADER -->
+  <header class="top">
+    <div class="brand">
+      <div class="brand-icon">⚡</div>
+      <div>
+        <h1>GUILD GLORY BOT</h1>
+        <small>WEB CONTROL CENTER & LIVE TERMINAL</small>
+      </div>
+    </div>
+    <div class="header-badges">
+      <div class="badge badge-status stopped" id="badge_status">
+        <span class="pulse-dot"></span>
+        <span id="badge_status_text">BOT OFFLINE</span>
+      </div>
+      <div class="badge">
+        🏆 <span id="badge_guild">Guild: 3056796518 [IND]</span>
+      </div>
+      <div class="badge">
+        ⏱️ <span id="badge_clock">--:--:--</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAVIGATION TABS -->
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="terminal">📟 Terminal & Bot Control</button>
+    <button class="tab-btn" data-tab="guild">🏆 Guild Glory Tracker</button>
+    <button class="tab-btn" data-tab="accounts">🛡️ Squad & Account Manager (7)</button>
+    <button class="tab-btn" data-tab="join">🛠️ Add Accounts & Join</button>
+    <button class="tab-btn" data-tab="settings">⚙️ Settings</button>
+  </nav>
+
+  <!-- QUICK STATS CARDS -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <small>🏆 Target Guild Glory</small>
+      <h3 id="stat_guild_glory">475</h3>
+      <div class="stat-sub" id="stat_glory_gained">+0 Gained Today</div>
+    </div>
+    <div class="stat-card">
+      <small>⚔️ Active Bot Mode</small>
+      <h3 id="stat_bot_mode">CLASH SQUAD</h3>
+      <div class="stat-sub" id="stat_bot_sub">4 Accounts • Fast Safe Glory</div>
+    </div>
+    <div class="stat-card">
+      <small>👥 Safe Accounts Active</small>
+      <h3 id="stat_active_accs">7 / 7 Safe</h3>
+      <div class="stat-sub">0 Bans • 100% Active</div>
+    </div>
+    <div class="stat-card">
+      <small>⏱️ Bot Uptime</small>
+      <h3 id="stat_uptime">00:00:00</h3>
+      <div class="stat-sub" id="stat_pid_lbl">PID: Stopped</div>
+    </div>
+  </div>
+
+  <!-- TAB 1: TERMINAL & BOT CONTROL -->
+  <section id="panel_terminal" class="panel active">
+    <!-- BOT CONTROLLER HERO -->
+    <div class="control-card">
+      <div class="control-header">
+        <div class="control-title">
+          <h2>🎮 One-Click Bot Remote Controller</h2>
+          <p>Select match mode and launch or stop the Guild Glory bot instantly without using CMD.</p>
+        </div>
+        <div class="safety-shield">
+          🛡️ Anti-Cheat Guard: Jitter Active • Fake Fire OFF • Speed Movement OFF (100% Safe)
+        </div>
+      </div>
+
+      <!-- MODE SELECTOR CARDS -->
+      <div class="modes-grid">
+        <div class="mode-box selected" onclick="selectMode('BR', 4, false, this)">
+          <h4>🎮 Battle Royale Safe</h4>
+          <p>Instant ~3s matchmaking. Guaranteed fast match & safe glory.</p>
+          <span class="mode-badge">1 Squad (4 Accounts) • RECOMMENDED</span>
+        </div>
+        <div class="mode-box" onclick="selectMode('BR', 4, true, this)">
+          <h4>⚡ 1-Match Test (Auto-Stop)</h4>
+          <p>Plays 1 match to test glory, then auto-stops safely.</p>
+          <span class="mode-badge">1 Match & Auto Stop</span>
+        </div>
+        <div class="mode-box" onclick="selectMode('BR', 7, false, this)">
+          <h4>🚀 Full Farm (All 7 Accs)</h4>
+          <p>Runs Squad #1 and Squad #2 together for max glory.</p>
+          <span class="mode-badge">2 Squads (7 Accounts)</span>
+        </div>
+        <div class="mode-box" onclick="selectMode('CS', 4, false, this)">
+          <h4>⚔️ Clash Squad Mode</h4>
+          <p>Clash Squad mode (longer matchmaking queue on Indian server).</p>
+          <span class="mode-badge">1 Squad (4 Accounts)</span>
+        </div>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div class="control-actions">
+        <button class="btn btn-start" id="btn_start_bot" onclick="handleStartBot()">
+          ▶ START BOT
+        </button>
+        <button class="btn btn-stop" id="btn_stop_bot" onclick="handleStopBot()">
+          ⏹ STOP BOT
+        </button>
+        <button class="btn btn-secondary" onclick="handleRestartBot()">
+          🔄 Restart Bot
+        </button>
+        <button class="btn btn-secondary" onclick="refreshGuildInfo()">
+          🏆 Refresh Glory
+        </button>
+      </div>
+    </div>
+
+    <!-- SQUAD QUICK STATUS RIBBON -->
+    <div class="squad-ribbon-bar" id="squad_ribbon_bar">
+      <div class="sq-ribbon-tile" id="ribbon_sq1">
+        <div>
+          <div style="font-size:11px; color:var(--text-muted); font-weight:700;">SQUAD #1 (Core 4/4)</div>
+          <div style="display:flex; align-items:center; gap:8px; margin-top:3px;">
+            <span class="sq-dot" id="sq1_dot" style="color:var(--text-muted)">●</span>
+            <span id="sq1_ribbon_status" style="font-weight:700; font-size:12px;">STOPPED</span>
+            <span class="tag tag-squad1" id="sq1_ribbon_mode">BR</span>
+          </div>
+          <div style="font-size:11px; color:#cbd5e1; margin-top:2px;" id="sq1_ribbon_match">Standby</div>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+          <span class="bot-glory-badge" id="sq1_ribbon_glory">+0 Glory</span>
+          <div style="display:flex; gap:4px;">
+            <button class="btn btn-primary" style="padding:4px 8px; font-size:11px;" onclick="startSquad(1)">▶ Start</button>
+            <button class="btn btn-danger" style="padding:4px 8px; font-size:11px;" onclick="stopSquad(1)">⏹</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sq-ribbon-tile" id="ribbon_sq2">
+        <div>
+          <div style="font-size:11px; color:var(--text-muted); font-weight:700;">SQUAD #2 (Reserve 3)</div>
+          <div style="display:flex; align-items:center; gap:8px; margin-top:3px;">
+            <span class="sq-dot" id="sq2_dot" style="color:var(--text-muted)">●</span>
+            <span id="sq2_ribbon_status" style="font-weight:700; font-size:12px;">STOPPED</span>
+            <span class="tag tag-squad2" id="sq2_ribbon_mode">CS</span>
+          </div>
+          <div style="font-size:11px; color:#cbd5e1; margin-top:2px;" id="sq2_ribbon_match">Standby</div>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+          <span class="bot-glory-badge" id="sq2_ribbon_glory">+0 Glory</span>
+          <div style="display:flex; gap:4px;">
+            <button class="btn btn-secondary" style="padding:4px 8px; font-size:11px;" onclick="startSquad(2)">▶ Start</button>
+            <button class="btn btn-danger" style="padding:4px 8px; font-size:11px;" onclick="stopSquad(2)">⏹</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTERACTIVE TERMINAL -->
+    <div class="terminal-container">
+      <div class="terminal-bar">
+        <div class="term-dots">
+          <div class="term-dot dot-red"></div>
+          <div class="term-dot dot-yellow"></div>
+          <div class="term-dot dot-green"></div>
+        </div>
+        <div class="term-title">
+          <span>ff-bot@glory-center:~#</span>
+          <span id="term_connection_badge" style="color:var(--green)">● SSE LIVE</span>
+        </div>
+        <div class="term-tools">
+          <button class="term-btn active" id="btn_autoscroll" onclick="toggleAutoScroll()">
+            ⬇ Auto-Scroll: ON
+          </button>
+          <select class="term-select" id="log_filter" onchange="filterLogs()">
+            <option value="all">Filter: All Logs</option>
+            <option value="squad">Squad & Matchmaking</option>
+            <option value="packet">Network Packets</option>
+            <option value="glory">Glory & EXP</option>
+            <option value="error">Errors & Warnings</option>
+          </select>
+          <button class="term-btn" onclick="copyLogs()">📋 Copy Logs</button>
+          <button class="term-btn" onclick="clearTerminal()">🧹 Clear</button>
+        </div>
+      </div>
+
+      <!-- TERMINAL SCREEN -->
+      <div class="terminal-screen" id="terminal_screen">
+        <div class="t-line info"><span class="t-time">[00:00:00]</span><span class="t-text">[SYS] Connecting to live log stream...</span></div>
+      </div>
+
+      <!-- TERMINAL INPUT -->
+      <div class="terminal-input-bar">
+        <div class="input-row">
+          <span class="prompt-lbl">bot-console &gt;_</span>
+          <input type="text" class="terminal-input" id="term_cmd_input" placeholder="Type command (e.g. 'start cs', 'start br', 'stop', 'glory', 'status') and press Enter..." onkeydown="handleInputKey(event)">
+          <button class="btn btn-secondary" style="padding: 7px 16px; font-size: 12px;" onclick="sendInputCmd()">Send</button>
+        </div>
+        <div class="chips-row">
+          <span class="chip" onclick="executeChip('start cs')">⚔️ start cs</span>
+          <span class="chip" onclick="executeChip('start br')">🎮 start br</span>
+          <span class="chip" onclick="executeChip('start test')">⚡ 1 match test</span>
+          <span class="chip" onclick="executeChip('start full')">🚀 start full</span>
+          <span class="chip" onclick="executeChip('stop')">⏹ stop</span>
+          <span class="chip" onclick="executeChip('status')">📊 status</span>
+          <span class="chip" onclick="executeChip('glory')">🏆 glory</span>
+          <span class="chip" onclick="executeChip('accounts')">👥 accounts</span>
+          <span class="chip" onclick="executeChip('clear')">🧹 clear</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 2: GUILD GLORY TRACKER -->
+  <section id="panel_guild" class="panel">
+    <div class="control-card">
+      <div class="control-header">
+        <div>
+          <h2>🏆 Target Guild Glory: [Lv. 1] VOIDONTOP</h2>
+          <p>Guild ID: <strong>3056796518</strong> • Region: <strong>IND</strong> • Live Game Server Tracking</p>
+        </div>
+        <button class="btn btn-secondary" onclick="refreshGuildInfo()">↻ Refresh Guild</button>
+      </div>
+      <div class="stats-grid" style="margin-bottom: 0;">
+        <div class="stat-card">
+          <small>Total Guild Glory</small>
+          <h3 id="g_glory">475</h3>
+          <div class="stat-sub">From Game Protobuf</div>
+        </div>
+        <div class="stat-card">
+          <small>Bot Contributed Glory</small>
+          <h3 id="g_bot_glory">0</h3>
+          <div class="stat-sub">Session Gain</div>
+        </div>
+        <div class="stat-card">
+          <small>Guild Members</small>
+          <h3 id="g_members">17 / 20</h3>
+          <div class="stat-sub">Capacity: 20</div>
+        </div>
+        <div class="stat-card">
+          <small>Guild Leader</small>
+          <h3 style="font-size: 18px;" id="g_leader">N0b32010252</h3>
+          <div class="stat-sub">UID: 32010252</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GUILD MEMBER ROSTER TABLE -->
+    <div class="table-card">
+      <div class="table-header">
+        <h3>Guild Members Roster</h3>
+        <span class="badge" id="g_roster_count">17 Members</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>UID</th>
+              <th>Nickname</th>
+              <th>Level</th>
+              <th>Role</th>
+              <th>Glory Score</th>
+              <th>Account Type</th>
+            </tr>
+          </thead>
+          <tbody id="guild_member_rows">
+            <tr><td colspan="6">Loading live guild roster...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- BOT ACCOUNTS GLORY BREAKDOWN TABLE -->
+    <div class="table-card" style="margin-top:20px;">
+      <div class="table-header">
+        <div>
+          <h3>🤖 Bot Accounts Glory Contribution Breakdown</h3>
+          <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+            Live session glory contributed by each bot account to Target Guild 3056796518.
+          </p>
+        </div>
+        <span class="bot-glory-badge" id="g_bot_glory_badge" style="font-size:13px; padding:6px 12px;">+0 Total Glory</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Bot UID</th>
+              <th>Nickname</th>
+              <th>Squad</th>
+              <th>Role</th>
+              <th>Matches Played</th>
+              <th>Glory Contributed</th>
+              <th>Live Status</th>
+              <th>Room / Server</th>
+            </tr>
+          </thead>
+          <tbody id="bot_glory_rows">
+            <tr><td colspan="8">Loading bot contribution stats...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 3: SQUADS & ACCOUNTS MANAGEMENT -->
+  <section id="panel_accounts" class="panel">
+    <!-- TOP TOOLBAR -->
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+      <div>
+        <h2 style="font-size:18px; font-weight:800; color:#fff;">🛡️ Squad & Account Management</h2>
+        <p style="font-size:12px; color:var(--text-muted); margin-top:2px;">
+          Manage each squad independently (BR vs CS), view in-match live status, room codes, live game timers, and glory contributed.
+        </p>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-primary" onclick="autoAssignSquads()">⚡ Auto-Assign 4-Player Squads</button>
+        <button class="btn btn-secondary" onclick="loadSquads()">↻ Refresh Squads</button>
+      </div>
+    </div>
+
+    <!-- SQUAD SUMMARY METRICS -->
+    <div class="squad-summary-grid">
+      <div class="squad-summary-box">
+        <h4>🏆 Bot Contributed Glory</h4>
+        <div class="val" id="sq_metric_glory">+0 Glory</div>
+        <div class="sub">Earned by bot matches in this session</div>
+      </div>
+      <div class="squad-summary-box">
+        <h4>⚔️ Completed Matches</h4>
+        <div class="val" id="sq_metric_matches">0 Matches</div>
+        <div class="sub">Total completed AFK glory matches</div>
+      </div>
+      <div class="squad-summary-box">
+        <h4>🛡️ Configured Squads</h4>
+        <div class="val">2 Squads (7 Bots)</div>
+        <div class="sub">Squad #1 (4 bots) • Squad #2 (3 bots)</div>
+      </div>
+      <div class="squad-summary-box">
+        <h4>🟢 Account Protection</h4>
+        <div class="val" style="color:var(--green)">100% Safe</div>
+        <div class="sub">7 Active Accounts • 0 Bans • Jitter Active</div>
+      </div>
+    </div>
+
+    <!-- SQUADS CONTAINER -->
+    <div class="squads-container" id="squads_container">
+      <div style="text-align:center; padding:40px; color:var(--text-muted);">Loading squad configurations...</div>
+    </div>
+  </section>
+
+  <!-- TAB 4: ADD ACCOUNTS & JOIN -->
+  <section id="panel_join" class="panel">
+    <div class="form-grid">
+      <div class="form-box">
+        <h3>➕ Add Single Account</h3>
+        <label>Account UID</label>
+        <input type="text" id="add_uid" placeholder="e.g. 8490610228">
+        <label>Password</label>
+        <input type="password" id="add_pwd" placeholder="e.g. LOFAR_...">
+        <button class="btn btn-secondary" style="width: 100%;" onclick="submitAddAccount()">Add Account</button>
+        <div class="result-box" id="add_res">Enter UID and Password above to register.</div>
+      </div>
+
+      <div class="form-box">
+        <h3>🛡️ Auto Guild Join</h3>
+        <label>Target Guild ID</label>
+        <input type="text" id="join_gid" value="3056796518">
+        <label>Region</label>
+        <input type="text" id="join_reg" value="IND">
+        <button class="btn btn-secondary" style="width: 100%;" onclick="submitJoinGuild()">Send Join Requests</button>
+        <div class="result-box" id="join_res">Sends join requests from all active accounts to target guild.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 5: SETTINGS -->
+  <section id="panel_settings" class="panel">
+    <div class="form-box" style="max-width: 650px;">
+      <h3>⚙️ System & Bot Configuration</h3>
+      <label>Target Guild ID</label>
+      <input type="text" id="cfg_gid" value="3056796518">
+      <label>Server Region</label>
+      <input type="text" id="cfg_reg" value="IND">
+      <label>Default Game Mode</label>
+      <select id="cfg_mode">
+        <option value="CS" selected>Clash Squad (CS) Safe</option>
+        <option value="BR">Battle Royale (BR) Safe</option>
+      </select>
+      <button class="btn btn-secondary" onclick="saveSettings()">Save Configuration</button>
+      <div class="result-box" id="cfg_res">Settings saved in guild_config.json</div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    FREE FIRE GUILD GLORY BOT • WEB CONTROL CENTER & TERMINAL • RUNNING ON PORT 25086
+  </footer>
+</div>
+
+<script>
+// ==================== STATE ====================
+let selectedMode = 'BR';
+let selectedLimit = 4;
+let selectedStopAfterMatch = false;
+let autoScroll = true;
+let allLogs = [];
+let currentFilter = 'all';
+let sseSource = null;
+let pollTimer = null;
+let lastLogId = 0;
+
+const $ = id => document.getElementById(id);
+const fmt = n => (Number(n) || 0).toLocaleString();
+
+// ==================== TAB NAVIGATION ====================
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    const tabName = btn.dataset.tab;
+    const target = $('panel_' + tabName);
+    if (target) target.classList.add('active');
+    if (tabName === 'guild') { refreshGuildInfo(); loadSquads(); }
+    if (tabName === 'accounts') { loadSafeAccounts(); loadSquads(); }
+  };
+});
+
+// ==================== MODE SELECTOR ====================
+function selectMode(mode, limit, stopAfter, elem) {
+  selectedMode = mode;
+  selectedLimit = limit;
+  selectedStopAfterMatch = stopAfter;
+  document.querySelectorAll('.mode-box').forEach(b => b.classList.remove('selected'));
+  if (elem) elem.classList.add('selected');
+}
+
+// ==================== API HELPERS ====================
+async function api(url, method = 'GET', data = null) {
+  const opt = {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: data ? JSON.stringify(data) : undefined
+  };
+  const res = await fetch(url, opt);
+  const json = await res.json().catch(() => ({ error: 'Invalid response from server' }));
+  if (!res.ok) throw new Error(json.error || json.message || res.statusText);
+  return json;
+}
+
+// ==================== BOT CONTROLS ====================
+async function handleStartBot() {
+  try {
+    $('btn_start_bot').disabled = true;
+    $('btn_start_bot').textContent = 'Starting...';
+    const res = await api('/api/bot/start', 'POST', {
+      mode: selectedMode,
+      limit: selectedLimit,
+      stop_after_match: selectedStopAfterMatch
+    });
+    addLocalLog('[SYS] ' + (res.message || 'Bot starting...'), 'success');
+    await loadBotStatus();
+  } catch (e) {
+    addLocalLog('[SYS] ❌ ' + e.message, 'error');
+  } finally {
+    $('btn_start_bot').disabled = false;
+    $('btn_start_bot').textContent = '▶ START BOT';
+  }
+}
+
+async function handleStopBot() {
+  try {
+    $('btn_stop_bot').disabled = true;
+    $('btn_stop_bot').textContent = 'Stopping...';
+    const res = await api('/api/bot/stop', 'POST', {});
+    addLocalLog('[SYS] ' + (res.message || 'Bot stopped'), 'warning');
+    await loadBotStatus();
+  } catch (e) {
+    addLocalLog('[SYS] ❌ ' + e.message, 'error');
+  } finally {
+    $('btn_stop_bot').disabled = false;
+    $('btn_stop_bot').textContent = '⏹ STOP BOT';
+  }
+}
+
+async function handleRestartBot() {
+  try {
+    addLocalLog('[SYS] 🔄 Restarting bot...', 'warning');
+    await api('/api/bot/restart', 'POST', {});
+    await loadBotStatus();
+  } catch (e) {
+    addLocalLog('[SYS] ❌ ' + e.message, 'error');
+  }
+}
+
+// ==================== BOT STATUS SYNC ====================
+async function loadBotStatus() {
+  try {
+    const data = await api('/api/bot/status');
+    const bot = data.bot || {};
+    const guild = data.guild || {};
+
+    const badge = $('badge_status');
+    const badgeText = $('badge_status_text');
+    if (bot.running) {
+      badge.className = 'badge badge-status';
+      badgeText.textContent = `BOT RUNNING [${bot.mode || 'CS'}]`;
+      $('stat_bot_mode').textContent = (bot.mode || 'CS') === 'CS' ? 'CLASH SQUAD' : 'BATTLE ROYALE';
+      $('stat_bot_sub').textContent = `${bot.limit || 4} Accounts • PID: ${bot.pid || '--'}`;
+      $('stat_uptime').textContent = formatSeconds(bot.uptime || 0);
+      $('stat_pid_lbl').textContent = `PID: ${bot.pid || '--'}`;
+    } else {
+      badge.className = 'badge badge-status stopped';
+      badgeText.textContent = 'BOT OFFLINE';
+      $('stat_pid_lbl').textContent = 'PID: Stopped';
+      $('stat_uptime').textContent = '00:00:00';
+    }
+
+    if (guild.glory !== undefined) {
+      $('stat_guild_glory').textContent = fmt(guild.glory);
+      $('g_glory').textContent = fmt(guild.glory);
+      const gained = guild.gained_total || 0;
+      $('stat_glory_gained').textContent = gained > 0 ? `+${fmt(gained)} Gained Today` : '+0 Gained Today';
+      $('g_bot_glory').textContent = fmt(gained);
+    }
+
+    if (data.squads && data.squads.length) {
+      currentSquads = data.squads;
+      const gloryEl = $('sq_metric_glory');
+      if (gloryEl) gloryEl.textContent = `+${fmt(data.total_glory_contributed || 0)} Glory`;
+      const matchEl = $('sq_metric_matches');
+      if (matchEl) matchEl.textContent = `${fmt(data.total_matches || 0)} Matches`;
+      renderSquadRibbon(currentSquads);
+    }
+  } catch (e) {
+    // console.warn('Status error', e);
+  }
+}
+
+function formatSeconds(sec) {
+  sec = Number(sec) || 0;
+  const h = Math.floor(sec / 3600).toString().padStart(2, '0');
+  const m = Math.floor((sec % 3600) / 60).toString().padStart(2, '0');
+  const s = Math.floor(sec % 60).toString().padStart(2, '0');
+  return `${h}:${m}:${s}`;
+}
+
+// ==================== TERMINAL LOGS & STREAMING ====================
+function addLocalLog(text, level = 'info') {
+  const t = new Date().toTimeString().split(' ')[0];
+  const entry = { id: ++lastLogId, time: t, text, level };
+  appendLogEntry(entry);
+}
+
+function appendLogEntry(entry) {
+  allLogs.push(entry);
+  if (allLogs.length > 1000) allLogs.shift();
+  if (entry.id > lastLogId) lastLogId = entry.id;
+
+  if (matchesFilter(entry, currentFilter)) {
+    const screen = $('terminal_screen');
+    const div = document.createElement('div');
+    div.className = `t-line ${entry.level || 'info'}`;
+    const cleanTxt = String(entry.text || '').replace(/<[^>]*>/g, '');
+    div.innerHTML = `<span class="t-time">[${esc(entry.time || '')}]</span><span class="t-text">${esc(cleanTxt)}</span>`;
+    screen.appendChild(div);
+
+    if (autoScroll) {
+      screen.scrollTop = screen.scrollHeight;
+    }
+  }
+}
+
+function esc(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function matchesFilter(entry, filter) {
+  if (!filter || filter === 'all') return true;
+  const lvl = entry.level || 'info';
+  const txt = (entry.text || '').toLowerCase();
+  if (filter === 'squad') return lvl === 'squad' || txt.includes('squad') || txt.includes('match') || txt.includes('invite');
+  if (filter === 'packet') return lvl === 'packet' || txt.includes('len=') || txt.includes('hex=');
+  if (filter === 'glory') return lvl === 'glory' || txt.includes('glory') || txt.includes('exp');
+  if (filter === 'error') return lvl === 'error' || lvl === 'warning' || txt.includes('fail') || txt.includes('error');
+  return true;
+}
+
+function filterLogs() {
+  currentFilter = $('log_filter').value;
+  const screen = $('terminal_screen');
+  screen.innerHTML = '';
+  allLogs.forEach(entry => {
+    if (matchesFilter(entry, currentFilter)) {
+      const div = document.createElement('div');
+      div.className = `t-line ${entry.level || 'info'}`;
+      const cleanTxt = String(entry.text || '').replace(/<[^>]*>/g, '');
+      div.innerHTML = `<span class="t-time">[${esc(entry.time || '')}]</span><span class="t-text">${esc(cleanTxt)}</span>`;
+      screen.appendChild(div);
+    }
+  });
+  if (autoScroll) screen.scrollTop = screen.scrollHeight;
+}
+
+function toggleAutoScroll() {
+  autoScroll = !autoScroll;
+  const btn = $('btn_autoscroll');
+  if (autoScroll) {
+    btn.className = 'term-btn active';
+    btn.textContent = '⬇ Auto-Scroll: ON';
+    $('terminal_screen').scrollTop = $('terminal_screen').scrollHeight;
+  } else {
+    btn.className = 'term-btn';
+    btn.textContent = '⏸ Auto-Scroll: OFF';
+  }
+}
+
+function clearTerminal() {
+  $('terminal_screen').innerHTML = '';
+  allLogs = [];
+  addLocalLog('[SYS] Terminal display cleared.', 'info');
+}
+
+function copyLogs() {
+  const text = allLogs.map(e => `[${e.time}] ${e.text}`).join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    alert('All logs copied to clipboard!');
+  }).catch(() => {
+    alert('Could not access clipboard.');
+  });
+}
+
+// ==================== SSE LIVE CONNECTION ====================
+function initSSE() {
+  if (sseSource) {
+    try { sseSource.close(); } catch (_) {}
+  }
+  const badge = $('term_connection_badge');
+  badge.textContent = '● CONNECTING...';
+  badge.style.color = 'var(--yellow)';
+
+  try {
+    sseSource = new EventSource('/api/bot/terminal/stream');
+    sseSource.onopen = () => {
+      badge.textContent = '● SSE LIVE';
+      badge.style.color = 'var(--green)';
+    };
+    sseSource.onmessage = (event) => {
+      try {
+        const item = JSON.parse(event.data);
+        appendLogEntry(item);
+      } catch (_) {}
+    };
+    sseSource.onerror = () => {
+      badge.textContent = '● POLLING (300ms)';
+      badge.style.color = 'var(--yellow)';
+      sseSource.close();
+      startPolling();
+    };
+  } catch (_) {
+    startPolling();
+  }
+}
+
+function startPolling() {
+  if (pollTimer) return;
+  pollTimer = setInterval(async () => {
+    try {
+      const res = await api(`/api/bot/logs?since=${lastLogId}`);
+      if (res.logs && res.logs.length) {
+        res.logs.forEach(appendLogEntry);
+      }
+    } catch (_) {}
+  }, 400);
+}
+
+// ==================== COMMAND LINE PROMPT ====================
+function handleInputKey(e) {
+  if (e.key === 'Enter') {
+    sendInputCmd();
+  }
+}
+
+async function sendInputCmd() {
+  const inp = $('term_cmd_input');
+  const val = inp.value.trim();
+  if (!val) return;
+  inp.value = '';
+  executeChip(val);
+}
+
+async function executeChip(cmd) {
+  try {
+    const res = await api('/api/bot/command', 'POST', { command: cmd });
+    await loadBotStatus();
+  } catch (e) {
+    addLocalLog('[SYS] ❌ ' + e.message, 'error');
+  }
+}
+
+// ==================== GUILD TRACKER ====================
+async function refreshGuildInfo() {
+  try {
+    const res = await api('/api/guild/refresh?guild_id=3056796518&region=IND');
+    const g = res.guild_live || {};
+    if (g.glory !== undefined) {
+      $('g_glory').textContent = fmt(g.glory);
+      $('stat_guild_glory').textContent = fmt(g.glory);
+      $('g_bot_glory').textContent = fmt(g.gained_total || 0);
+      $('g_members').textContent = `${g.total_members || 17} / 20`;
+      if (g.leader_uid) $('g_leader').textContent = `UID: ${g.leader_uid}`;
+    }
+    renderGuildMembers(g.members || []);
+  } catch (e) {
+    // console.warn(e);
+  }
+}
+
+function renderGuildMembers(members) {
+  const tbody = $('guild_member_rows');
+  if (!members || !members.length) {
+    tbody.innerHTML = '<tr><td colspan="6">Loading member list from game server...</td></tr>';
+    return;
+  }
+  $('g_roster_count').textContent = `${members.length} Members`;
+  tbody.innerHTML = members.map(m => {
+    const isOur = m.is_ours || (m.name && m.name.startsWith('voidbby'));
+    const isBanned = m.name === 'voidbbyWVDS' || (m.our_status && m.our_status.includes('Banned'));
+    let typeTag = isOur ? `<span class="tag tag-squad1">Our Bot</span>` : `<span class="tag">Member</span>`;
+    if (isBanned) typeTag = `<span class="tag tag-ban">⚠️ Suspended (Kick)</span>`;
+    return `<tr>
+      <td>${esc(m.uid)}</td>
+      <td><strong>${esc(m.name)}</strong></td>
+      <td>${esc(m.level ?? '--')}</td>
+      <td>${esc(m.is_leader ? '👑 Leader' : (m.role || 'Member'))}</td>
+      <td>${fmt(m.score || 0)}</td>
+      <td>${typeTag}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ==================== SAFE ACCOUNTS ====================
+async function loadSafeAccounts() {
+  try {
+    const res = await api('/api/accounts/safe');
+    const accs = res.accounts || [];
+    const tbody = $('safe_account_rows');
+    if (!accs.length) {
+      tbody.innerHTML = '<tr><td colspan="6">No safe accounts found.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = accs.map(a => `
+      <tr>
+        <td><strong>${esc(a.uid)}</strong></td>
+        <td>${esc(a.nickname)}</td>
+        <td>Level ${esc(a.level)}</td>
+        <td><span class="tag ${a.squad.includes('#1') ? 'tag-squad1' : 'tag-squad2'}">${esc(a.squad)}</span></td>
+        <td><span class="tag tag-active">🛡️ Anti-AFK Safe</span></td>
+        <td><span class="tag tag-active">● OK ACTIVE</span></td>
+      </tr>
+    `).join('');
+  } catch (e) {
+    $('safe_account_rows').innerHTML = `<tr><td colspan="6">${esc(e.message)}</td></tr>`;
+  }
+}
+
+// ==================== SQUAD MANAGEMENT & LIVE MATCH CENTER ====================
+let currentSquads = [];
+
+async function loadSquads() {
+  try {
+    const res = await api('/api/squads');
+    if (res.status === 'ok') {
+      currentSquads = res.squads || [];
+      const gloryEl = $('sq_metric_glory');
+      if (gloryEl) gloryEl.textContent = `+${fmt(res.total_glory_contributed || 0)} Glory`;
+      const matchEl = $('sq_metric_matches');
+      if (matchEl) matchEl.textContent = `${fmt(res.total_matches || 0)} Matches`;
+      renderSquads(currentSquads);
+      renderSquadRibbon(currentSquads);
+      renderBotGloryBreakdown(currentSquads);
+    }
+  } catch (e) {
+    // console.warn('Squad load error', e);
+  }
+}
+
+function renderSquads(squads) {
+  const container = $('squads_container');
+  if (!container) return;
+  if (!squads || !squads.length) {
+    container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted);">No squads found. Click "Auto-Assign 4-Player Squads" above.</div>';
+    return;
+  }
+
+  container.innerHTML = squads.map(sq => {
+    const isAct = sq.is_active;
+    let stClass = 'stopped';
+    let stText = 'STOPPED';
+    if (isAct) {
+      if (sq.status === 'IN_MATCH') { stClass = 'in-match'; stText = '● IN MATCH'; }
+      else if (sq.status === 'MATCHMAKING') { stClass = 'queueing'; stText = '⏳ MATCHMAKING'; }
+      else if (sq.status === 'LOBBY') { stClass = 'lobby'; stText = '👥 LOBBY READY'; }
+      else { stClass = 'in-match'; stText = sq.status; }
+    }
+
+    const modeTag = sq.mode === 'BR'
+      ? '<span class="tag tag-squad1">🎮 BR Safe</span>'
+      : '<span class="tag tag-squad2">⚔️ CS Glory</span>';
+
+    const accsHtml = (sq.accounts || []).map(a => {
+      let aPill = 'stopped';
+      let aText = 'Standby';
+      if (sq.is_active) {
+        if (sq.status === 'IN_MATCH') { aPill = 'in-match'; aText = 'In Game'; }
+        else if (sq.status === 'MATCHMAKING') { aPill = 'queueing'; aText = 'Queueing'; }
+        else if (sq.status === 'LOBBY') { aPill = 'lobby'; aText = 'Lobby'; }
+      }
+      return `
+        <div class="bot-card-item">
+          <div class="bot-top">
+            <div class="bot-uid-group">
+              <span class="bot-role-badge ${a.is_leader ? 'leader' : 'member'}">${esc(a.role)}</span>
+              <span class="bot-uid">${esc(a.uid)}</span>
+              <button class="term-btn" style="padding:2px 6px; font-size:10px;" onclick="copyUid('${esc(a.uid)}')">📋</button>
+            </div>
+            <span class="bot-status-pill ${aPill}">${esc(aText)}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="bot-nick">${esc(a.nickname)}</div>
+            <div class="tag" style="font-size:10px;">Lv. ${esc(a.level)}</div>
+          </div>
+          <div class="bot-meta-row">
+            <span>🎮 Matches: <strong>${a.matches_played || 0}</strong></span>
+            <span class="bot-glory-badge">+${a.glory_contributed || 0} Glory</span>
+          </div>
+          ${sq.status === 'IN_MATCH' ? `
+            <div style="font-size:11px; color:#38bdf8; display:flex; justify-content:space-between; background:rgba(56,189,248,0.08); padding:4px 8px; border-radius:6px;">
+              <span>Room: <strong>${esc(a.room_code || sq.room_code || '32104')}</strong></span>
+              <span>⏱️ ${esc(a.in_match_duration || sq.match_duration_formatted || '--:--')}</span>
+            </div>
+          ` : ''}
+          <div style="font-size:10px; color:var(--text-muted); display:flex; justify-content:space-between;">
+            <span>🛡️ Anti-AFK Guard</span>
+            <span style="color:var(--green)">100% Safe</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="squad-card ${isAct ? 'active-squad' : ''}">
+        <div class="squad-card-header">
+          <div class="sq-title-group">
+            <h3>${esc(sq.name)}</h3>
+            ${modeTag}
+            <span class="bot-status-pill ${stClass}">${esc(stText)}</span>
+          </div>
+          <div class="sq-controls-group">
+            <select class="sq-mode-select" onchange="changeSquadMode(${sq.id}, this.value)">
+              <option value="BR" ${sq.mode === 'BR' ? 'selected' : ''}>🎮 Battle Royale (BR)</option>
+              <option value="CS" ${sq.mode === 'CS' ? 'selected' : ''}>⚔️ Clash Squad (CS)</option>
+            </select>
+            <button class="btn-sq-start" onclick="startSquad(${sq.id})" ${isAct ? 'disabled style="opacity:0.5"' : ''}>▶ Start</button>
+            <button class="btn-sq-stop" onclick="stopSquad(${sq.id})" ${!isAct ? 'disabled style="opacity:0.5"' : ''}>⏹ Stop</button>
+            <button class="btn-sq-restart" onclick="restartSquad(${sq.id})">🔄 Restart</button>
+          </div>
+        </div>
+        <div class="squad-live-bar">
+          <div class="sq-stat-item">
+            <span class="sq-stat-label">Room Code:</span>
+            <span class="sq-stat-val ${sq.room_code ? 'active-match' : ''}">${esc(sq.room_code || 'Standby')}</span>
+          </div>
+          <div class="sq-stat-item">
+            <span class="sq-stat-label">Server IP:</span>
+            <span class="sq-stat-val">${esc(sq.server_ip || '103.219.202.x (IND)')}</span>
+          </div>
+          <div class="sq-stat-item">
+            <span class="sq-stat-label">Match Duration:</span>
+            <span class="sq-stat-val ${sq.status === 'IN_MATCH' ? 'active-match' : ''}" id="sq_dur_${sq.id}">⏱️ ${esc(sq.match_duration_formatted || '--:--')}</span>
+          </div>
+          <div class="sq-stat-item">
+            <span class="sq-stat-label">Completed:</span>
+            <span class="sq-stat-val">${sq.total_matches || 0} Matches</span>
+          </div>
+          <div class="sq-stat-item">
+            <span class="sq-stat-label">Squad Glory:</span>
+            <span class="bot-glory-badge" style="font-size:12px;">+${sq.total_glory || 0} Glory</span>
+          </div>
+        </div>
+        <div class="squad-accounts-list">
+          ${accsHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderSquadRibbon(squads) {
+  const sq1 = squads.find(s => s.id === 1);
+  if (sq1) {
+    const dot1 = $('sq1_dot');
+    if (dot1) dot1.style.color = sq1.is_active ? 'var(--green)' : 'var(--text-muted)';
+    const st1 = $('sq1_ribbon_status');
+    if (st1) {
+      st1.textContent = sq1.is_active ? sq1.status : 'STOPPED';
+      st1.style.color = sq1.is_active ? (sq1.status === 'IN_MATCH' ? 'var(--green)' : 'var(--yellow)') : 'var(--text-muted)';
+    }
+    const m1 = $('sq1_ribbon_mode');
+    if (m1) m1.textContent = sq1.mode;
+    const match1 = $('sq1_ribbon_match');
+    if (match1) {
+      if (sq1.status === 'IN_MATCH') {
+        match1.innerHTML = `<span style="color:var(--green); font-weight:700;">Room: ${esc(sq1.room_code || 'Active')} • ⏱️ ${esc(sq1.match_duration_formatted || '00:00')}</span>`;
+      } else if (sq1.status === 'MATCHMAKING') {
+        match1.innerHTML = `<span style="color:var(--yellow)">⏳ Matchmaking queue...</span>`;
+      } else if (sq1.status === 'LOBBY') {
+        match1.innerHTML = `<span style="color:var(--cyan)">👥 In Lobby • Ready</span>`;
+      } else {
+        match1.textContent = 'Standby (Click Start)';
+      }
+    }
+    const g1 = $('sq1_ribbon_glory');
+    if (g1) g1.textContent = `+${sq1.total_glory || 0} Glory`;
+  }
+
+  const sq2 = squads.find(s => s.id === 2);
+  if (sq2) {
+    const dot2 = $('sq2_dot');
+    if (dot2) dot2.style.color = sq2.is_active ? 'var(--green)' : 'var(--text-muted)';
+    const st2 = $('sq2_ribbon_status');
+    if (st2) {
+      st2.textContent = sq2.is_active ? sq2.status : 'STOPPED';
+      st2.style.color = sq2.is_active ? (sq2.status === 'IN_MATCH' ? 'var(--green)' : 'var(--yellow)') : 'var(--text-muted)';
+    }
+    const m2 = $('sq2_ribbon_mode');
+    if (m2) m2.textContent = sq2.mode;
+    const match2 = $('sq2_ribbon_match');
+    if (match2) {
+      if (sq2.status === 'IN_MATCH') {
+        match2.innerHTML = `<span style="color:var(--green); font-weight:700;">Room: ${esc(sq2.room_code || 'Active')} • ⏱️ ${esc(sq2.match_duration_formatted || '00:00')}</span>`;
+      } else if (sq2.status === 'MATCHMAKING') {
+        match2.innerHTML = `<span style="color:var(--yellow)">⏳ Matchmaking queue...</span>`;
+      } else if (sq2.status === 'LOBBY') {
+        match2.innerHTML = `<span style="color:var(--cyan)">👥 In Lobby • Ready</span>`;
+      } else {
+        match2.textContent = 'Standby (Click Start)';
+      }
+    }
+    const g2 = $('sq2_ribbon_glory');
+    if (g2) g2.textContent = `+${sq2.total_glory || 0} Glory`;
+  }
+}
+
+function renderBotGloryBreakdown(squads) {
+  const tbody = $('bot_glory_rows');
+  if (!tbody) return;
+  const allBots = [];
+  let totalBotGlory = 0;
+  squads.forEach(sq => {
+    (sq.accounts || []).forEach(a => {
+      allBots.push({ ...a, squad_name: sq.name, squad_id: sq.id, squad_mode: sq.mode });
+      totalBotGlory += (a.glory_contributed || 0);
+    });
+  });
+
+  const badge = $('g_bot_glory_badge');
+  if (badge) badge.textContent = `+${totalBotGlory} Total Glory`;
+
+  if (!allBots.length) {
+    tbody.innerHTML = '<tr><td colspan="8">No active bots configured.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = allBots.map(b => {
+    const isLead = b.is_leader;
+    let stBadge = '<span class="tag">Standby</span>';
+    if (b.status === 'IN_MATCH') stBadge = '<span class="tag tag-active">● IN MATCH</span>';
+    else if (b.status === 'MATCHMAKING') stBadge = '<span class="tag tag-queue">⏳ QUEUEING</span>';
+    else if (b.status === 'LOBBY') stBadge = '<span class="tag tag-squad1">👥 LOBBY</span>';
+
+    const roomText = b.status === 'IN_MATCH'
+      ? `<span style="color:var(--green); font-weight:700;">Room: ${esc(b.room_code || '--')} (${esc(b.in_match_duration || '00:00')})</span>`
+      : '<span style="color:var(--text-muted)">--</span>';
+
+    return `
+      <tr>
+        <td><strong>${esc(b.uid)}</strong> <button class="term-btn" style="padding:1px 5px; font-size:10px;" onclick="copyUid('${esc(b.uid)}')">📋</button></td>
+        <td>${esc(b.nickname)}</td>
+        <td><span class="tag ${b.squad_id === 1 ? 'tag-squad1' : 'tag-squad2'}">${esc(b.squad_name)}</span></td>
+        <td><span class="bot-role-badge ${isLead ? 'leader' : 'member'}">${esc(b.role)}</span></td>
+        <td><strong>${b.matches_played || 0}</strong> matches</td>
+        <td><span class="bot-glory-badge">+${b.glory_contributed || 0} Glory</span></td>
+        <td>${stBadge}</td>
+        <td>${roomText}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+async function startSquad(sqId) {
+  try {
+    addLocalLog(`[SYS] 🚀 Starting Squad #${sqId}...`, 'info');
+    const res = await api('/api/squad/start', 'POST', { squad_id: sqId });
+    addLocalLog(`[SYS] ${res.message || 'Squad #' + sqId + ' started'}`, 'success');
+    await loadSquads();
+    await loadBotStatus();
+  } catch (e) {
+    addLocalLog(`[SYS] ❌ Failed to start Squad #${sqId}: ` + e.message, 'error');
+  }
+}
+
+async function stopSquad(sqId) {
+  try {
+    addLocalLog(`[SYS] ⏹ Stopping Squad #${sqId}...`, 'warning');
+    const res = await api('/api/squad/stop', 'POST', { squad_id: sqId });
+    addLocalLog(`[SYS] ${res.message || 'Squad stopped'}`, 'warning');
+    await loadSquads();
+    await loadBotStatus();
+  } catch (e) {
+    addLocalLog(`[SYS] ❌ Failed to stop Squad #${sqId}: ` + e.message, 'error');
+  }
+}
+
+async function restartSquad(sqId) {
+  try {
+    addLocalLog(`[SYS] 🔄 Restarting Squad #${sqId}...`, 'info');
+    const res = await api('/api/squad/restart', 'POST', { squad_id: sqId });
+    addLocalLog(`[SYS] ${res.message || 'Squad #' + sqId + ' restarted'}`, 'success');
+    await loadSquads();
+    await loadBotStatus();
+  } catch (e) {
+    addLocalLog(`[SYS] ❌ Failed to restart Squad #${sqId}: ` + e.message, 'error');
+  }
+}
+
+async function changeSquadMode(sqId, mode) {
+  try {
+    const res = await api('/api/squad/mode', 'POST', { squad_id: sqId, mode: mode });
+    addLocalLog(`[SYS] ⚙ Squad #${sqId} mode set to ${mode}`, 'info');
+    await loadSquads();
+  } catch (e) {
+    addLocalLog(`[SYS] ❌ Failed to change mode: ` + e.message, 'error');
+  }
+}
+
+async function autoAssignSquads() {
+  if (!confirm('Auto-assign accounts: 4 safe bots to Squad #1 and 3 safe bots to Squad #2?')) return;
+  try {
+    const res = await api('/api/squads/auto_assign', 'POST', {});
+    alert(res.message || 'Squads auto-assigned!');
+    addLocalLog('[SYS] ✅ ' + (res.message || 'Squads auto-assigned'), 'success');
+    await loadSquads();
+    await loadSafeAccounts();
+  } catch (e) {
+    alert('Error: ' + e.message);
+  }
+}
+
+function copyUid(uid) {
+  if (!uid) return;
+  navigator.clipboard.writeText(uid).then(() => {
+    alert('Copied UID: ' + uid);
+  }).catch(() => {
+    prompt('Copy UID manually:', uid);
+  });
+}
+
+// Live ticking stopwatch for active match
+setInterval(() => {
+  if (!currentSquads || !currentSquads.length) return;
+  currentSquads.forEach(sq => {
+    if (sq.status === 'IN_MATCH' && sq.is_active) {
+      sq.match_duration_sec = (sq.match_duration_sec || 0) + 1;
+      const m = Math.floor(sq.match_duration_sec / 60).toString().padStart(2, '0');
+      const s = Math.floor(sq.match_duration_sec % 60).toString().padStart(2, '0');
+      sq.match_duration_formatted = `${m}:${s}`;
+      const el = $(`sq_dur_${sq.id}`);
+      if (el) el.textContent = `⏱️ ${m}:${s}`;
+      const ribMatch = $(`sq${sq.id}_ribbon_match`);
+      if (ribMatch) ribMatch.innerHTML = `<span style="color:var(--green); font-weight:700;">Room: ${esc(sq.room_code || 'Active')} • ⏱️ ${m}:${s}</span>`;
+    }
+  });
+}, 1000);
+
+// ==================== WIZARD & SETTINGS ====================
+async function submitAddAccount() {
+  const uid = $('add_uid').value.trim();
+  const password = $('add_pwd').value.trim();
+  if (!uid || !password) return alert('UID and password required');
+  try {
+    const res = await api('/api/account/add', 'POST', { uid, password });
+    $('add_res').textContent = res.message || 'Account added successfully!';
+    $('add_uid').value = '';
+    $('add_pwd').value = '';
+    loadSafeAccounts();
+  } catch (e) {
+    $('add_res').textContent = 'Error: ' + e.message;
+  }
+}
+
+async function submitJoinGuild() {
+  const guild_id = $('join_gid').value.trim();
+  const region = $('join_reg').value.trim();
+  try {
+    const res = await api('/api/setup', 'POST', { guild_id, region });
+    $('join_res').textContent = res.message || 'Join requests submitted.';
+  } catch (e) {
+    $('join_res').textContent = 'Error: ' + e.message;
+  }
+}
+
+function saveSettings() {
+  $('cfg_res').textContent = 'Configuration saved for Target Guild 3056796518 (IND).';
+}
+
+// ==================== CLOCK & INIT ====================
+setInterval(() => {
+  $('badge_clock').textContent = new Date().toTimeString().split(' ')[0];
+}, 1000);
+
+window.onload = () => {
+  initSSE();
+  loadBotStatus();
+  loadSquads();
+  loadSafeAccounts();
+  refreshGuildInfo();
+  setInterval(loadBotStatus, 2500);
+  setInterval(loadSquads, 2500);
+};
+</script>
+</body>
+</html>
